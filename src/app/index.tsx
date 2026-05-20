@@ -1,8 +1,25 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useState } from 'react';
 import { Alert, Dimensions, Text, TouchableOpacity, View } from 'react-native';
+// Import Constants untuk mendeteksi lingkungan lingkungan running
+import Constants, { ExecutionEnvironment } from 'expo-constants';
+import * as Notifications from 'expo-notifications';
 
 const { width } = Dimensions.get('window');
+
+// Cek apakah aplikasi sedang berjalan di dalam Expo Go
+const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+
+// Hanya aktifkan handler jika dijalankan di luar Expo Go (di APK / Production Build)
+if (!isExpoGo) {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+    }),
+  });
+}
 
 interface PomodoroPreset {
   focus: number;  // dalam menit
@@ -11,7 +28,7 @@ interface PomodoroPreset {
 }
 
 export default function PomodoroApp() {
-  // --- PRESET PILIHAN WAKTU RESMI (BERSIH DARI MODE TESTING) ---
+  // --- PRESET PILIHAN WAKTU RESMI ---
   const presets: PomodoroPreset[] = [
     { focus: 25, break: 5, label: '25 : 5' },
     { focus: 50, break: 10, label: '50 : 10' },
@@ -20,11 +37,41 @@ export default function PomodoroApp() {
 
   // --- STATE MANAGEMENT ---
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
-  const [activePreset, setActivePreset] = useState<PomodoroPreset>(presets[0]); // Default kembali ke 25:5
-  const [secondsLeft, setSecondsLeft] = useState<number>(presets[0].focus * 60); // 25 Menit dalam detik
+  const [activePreset, setActivePreset] = useState<PomodoroPreset>(presets[0]);
+  const [secondsLeft, setSecondsLeft] = useState<number>(presets[0].focus * 60);
   const [isActive, setIsActive] = useState<boolean>(false);
   const [endTime, setEndTime] = useState<number | null>(null);
   const [isBreakMode, setIsBreakMode] = useState<boolean>(false);
+
+  // --- FUNGSI PEMICU NOTIFIKASI DI DETIK KE-0 ---
+  const pemicuNotifikasiLokal = async (judul: string, pesan: string) => {
+    // Jika di Expo Go, bypass fungsi agar tidak memicu error merah
+    if (isExpoGo) {
+      console.log(`[Simulasi Notifikasi] ${judul}: ${pesan}`);
+      return;
+    }
+
+    // Bagian ini akan otomatis aktif 100% saat di-build menjadi APK / di-host ke Web
+    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+    
+    if (existingStatus !== 'granted') {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+    
+    if (finalStatus === 'granted') {
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: judul,
+          body: pesan,
+          sound: true,
+          priority: Notifications.AndroidNotificationPriority.HIGH, // Menampilkan banner pop-up
+        },
+        trigger: null, // Langsung muncul detik ini juga
+      });
+    }
+  };
 
   // --- LOGIKA UTAMA TIMER (TIMESTAMP) ---
   useEffect(() => {
@@ -46,14 +93,20 @@ export default function PomodoroApp() {
             setEndTime(null);
             clearInterval(interval!);
 
-            // LOGIKA SWITCH SIKLUS OTOMATIS
+            // LOGIKA SWITCH SIKLUS OTOMATIS TEPAT DI DETIK KE-0
             if (!isBreakMode) {
               setIsBreakMode(true);
-              setSecondsLeft(activePreset.break * 60); // Pindah ke menit istirahat
+              setSecondsLeft(activePreset.break * 60);
+              
+              // Tembak Notifikasi & Alert Fokus Selesai
+              pemicuNotifikasiLokal('Sesi Fokus Selesai! 🎉', `Kerja bagus! Sekarang waktunya istirahat selama ${activePreset.break} menit.`);
               Alert.alert('Kerja Bagus! 🌟', `Sesi fokus selesai. Sekarang waktunya istirahat selama ${activePreset.break} menit.`);
             } else {
               setIsBreakMode(false);
-              setSecondsLeft(activePreset.focus * 60); // Kembali ke menit fokus
+              setSecondsLeft(activePreset.focus * 60);
+              
+              // Tembak Notifikasi & Alert Istirahat Selesai
+              pemicuNotifikasiLokal('Waktu Istirahat Habis! 🚀', 'Yuk, kembali fokus ke tugas Anda!');
               Alert.alert('Waktu Istirahat Habis! 🚀', 'Yuk, kembali fokus ke tugas Anda!');
             }
           } else {
@@ -177,20 +230,19 @@ export default function PomodoroApp() {
           flexDirection: 'row', 
           justifyContent: 'space-between', 
           width: '100%', 
-          maxWidth: 400, // Mengunci lebar maksimal agar tidak ambyar di layar laptop
+          maxWidth: 400, 
           paddingHorizontal: 10,
           marginBottom: 20
         }}
       >
-        {/* Tombol Mulai / Jeda */}
         <TouchableOpacity 
           onPress={toggleTimer}
           style={{ 
             backgroundColor: tombolMulaiWarna, 
             paddingVertical: 16, 
             borderRadius: 24, 
-            flex: 1, // Membagi porsi tombol secara adil kiri dan kanan
-            marginRight: 8, // Memberi jarak antar tombol
+            flex: 1, 
+            marginRight: 8, 
             alignItems: 'center',
             justifyContent: 'center'
           }}
@@ -200,7 +252,6 @@ export default function PomodoroApp() {
           </Text>
         </TouchableOpacity>
 
-        {/* Tombol Reset */}
         <TouchableOpacity 
           onPress={resetTimer}
           style={{ 
