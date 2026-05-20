@@ -172,23 +172,50 @@ export default function PomodoroApp() {
       </View>
 
       {/* 4. CONTROLLER */}
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', paddingHorizontal: 10 }} className="flex-row justify-between w-full mb-10 px-4">
+      <View 
+        style={{ 
+          flexDirection: 'row', 
+          justifyContent: 'space-between', 
+          width: '100%', 
+          maxWidth: 400, // Mengunci lebar maksimal agar tidak ambyar di layar laptop
+          paddingHorizontal: 10,
+          marginBottom: 20
+        }}
+      >
+        {/* Tombol Mulai / Jeda */}
         <TouchableOpacity 
           onPress={toggleTimer}
-          style={{ backgroundColor: tombolMulaiWarna, paddingVertical: 16, borderRadius: 24, width: width * 0.4, alignItems: 'center' }}
-          className="py-4 rounded-3xl w-[45%] items-center"
+          style={{ 
+            backgroundColor: tombolMulaiWarna, 
+            paddingVertical: 16, 
+            borderRadius: 24, 
+            flex: 1, // Membagi porsi tombol secara adil kiri dan kanan
+            marginRight: 8, // Memberi jarak antar tombol
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
         >
-          <Text style={{ color: '#FFF', fontSize: 18, fontWeight: '700' }} className="text-white text-lg font-bold">
+          <Text style={{ color: '#FFF', fontSize: 18, fontWeight: '700' }}>
             {isActive ? 'Jeda' : 'Mulai'}
           </Text>
         </TouchableOpacity>
 
+        {/* Tombol Reset */}
         <TouchableOpacity 
           onPress={resetTimer}
-          style={{ backgroundColor: '#FF3B30', paddingVertical: 16, borderRadius: 24, width: width * 0.4, alignItems: 'center' }}
-          className="py-4 rounded-3xl w-[45%] items-center bg-[#FF3B30]"
+          style={{ 
+            backgroundColor: '#FF3B30', 
+            paddingVertical: 16, 
+            borderRadius: 24, 
+            flex: 1, 
+            marginLeft: 8, 
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
         >
-          <Text style={{ color: '#FFF', fontSize: 18, fontWeight: '700' }} className="text-white text-lg font-bold">Reset</Text>
+          <Text style={{ color: '#FFF', fontSize: 18, fontWeight: '700' }}>
+            Reset
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
