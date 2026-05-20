@@ -1,11 +1,16 @@
 {
   "expo": {
-    "name": "fomodoro",
+    "name": "Fomodoro",
     "slug": "fomodoro",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/logofomodoro.png",
     "scheme": "fomodoro",
+    "splash": {
+      "image": "./assets/logofomodoro2.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#17A3EF"
+    },
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/expo.icon"
@@ -17,7 +22,8 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.kingbojji11.fomodoro"
     },
     "web": {
       "output": "static",
@@ -34,11 +40,21 @@
             "imageWidth": 76
           }
         }
-      ]
+      ],
+      "expo-font",
+      "expo-image",
+      "expo-web-browser",
+      "expo-localization"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "a2e9b064-2958-456f-b99a-08d10c34e75c"
+      }
     }
   }
 }
